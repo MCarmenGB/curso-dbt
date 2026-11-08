@@ -1,0 +1,27 @@
+sources:
+  - name: google_sheets
+    description: Hojas de cálculo de Google Sheets que la herramienta de ingesta sincroniza en Bronze.
+    database: "{{ env_var('DBT_BRONZE_DB') }}"
+    schema: google_sheets
+    config:
+      loaded_at_field: _loaded_at
+      freshness:
+        warn_after: {count: 24, period: hour}
+        error_after: {count: 48, period: hour}
+
+    tables:
+      - name: budget
+        description: Presupuesto mensual de unidades a vender por producto.
+        columns:
+          - name: _row
+            description: Número de fila en la hoja de cálculo. Identifica cada registro.
+          - name: product_id
+            description: UUID del producto presupuestado.
+          - name: quantity
+            description: Unidades presupuestadas para ese producto en ese mes.
+          - name: month
+            description: Mes al que corresponde el presupuesto.
+          - name: _fivetran_synced
+            description: Fecha en que la fila cambió en el sistema origen.
+          - name: _loaded_at
+            description: Momento en que la fila llegó a Bronze. La rellena Snowflake al cargar.
