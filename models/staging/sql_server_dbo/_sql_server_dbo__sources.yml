@@ -1,0 +1,164 @@
+sources:
+  - name: sql_server_dbo
+    description: Base de datos transaccional del e-commerce, replicada en Bronze por la herramienta de ingesta.
+    database: "{{ env_var('DBT_BRONZE_DB') }}"
+    schema: sql_server_dbo
+   
+    tables:
+      - name: addresses
+        description: Direcciones de envío y de los usuarios.
+        columns:
+          - name: address_id
+            description: UUID de la dirección.
+          - name: address
+            description: Calle y número.
+          - name: zipcode
+            description: Código postal.
+          - name: state
+            description: Estado o provincia.
+          - name: country
+            description: País.
+          - name: _fivetran_deleted
+            description: TRUE si la fila se borró en el sistema origen.
+          - name: _fivetran_synced
+            description: Fecha en que la fila cambió en el sistema origen.
+          - name: _loaded_at
+            description: Momento en que la fila llegó a Bronze.
+
+      - name: users
+        description: Usuarios registrados en la tienda.
+        columns:
+          - name: user_id
+            description: UUID del usuario.
+          - name: first_name
+            description: Nombre.
+          - name: last_name
+            description: Apellidos.
+          - name: email
+            description: Email del usuario.
+          - name: phone_number
+            description: Teléfono.
+          - name: address_id
+            description: UUID de la dirección del usuario.
+          - name: created_at
+            description: Fecha de alta del usuario.
+          - name: updated_at
+            description: Fecha de la última modificación del usuario.
+          - name: _fivetran_deleted
+            description: TRUE si la fila se borró en el sistema origen.
+          - name: _fivetran_synced
+            description: Fecha en que la fila cambió en el sistema origen.
+          - name: _loaded_at
+            description: Momento en que la fila llegó a Bronze.
+
+      - name: promos
+        description: Códigos promocionales y su descuento.
+        columns:
+          - name: promo_id
+            description: Identificador de la promoción.
+          - name: discount
+            description: Importe del descuento.
+          - name: status
+            description: Estado de la promoción (active o inactive).
+          - name: _fivetran_deleted
+            description: TRUE si la fila se borró en el sistema origen.
+          - name: _fivetran_synced
+            description: Fecha en que la fila cambió en el sistema origen.
+          - name: _loaded_at
+            description: Momento en que la fila llegó a Bronze.
+
+      - name: products
+        description: Catálogo de productos.
+        columns:
+          - name: product_id
+            description: UUID del producto.
+          - name: name
+            description: Nombre del producto.
+          - name: price
+            description: Precio unitario.
+          - name: inventory
+            description: Unidades en stock.
+          - name: _fivetran_deleted
+            description: TRUE si la fila se borró en el sistema origen.
+          - name: _fivetran_synced
+            description: Fecha en que la fila cambió en el sistema origen.
+          - name: _loaded_at
+            description: Momento en que la fila llegó a Bronze.
+
+      - name: orders
+        description: Pedidos realizados por los usuarios.
+        columns:
+          - name: order_id
+            description: UUID del pedido.
+          - name: user_id
+            description: UUID del usuario que hizo el pedido.
+          - name: address_id
+            description: UUID de la dirección de envío.
+          - name: promo_id
+            description: Promoción aplicada, si la hay.
+          - name: created_at
+            description: Fecha de creación del pedido.
+          - name: estimated_delivery_at
+            description: Fecha de entrega estimada.
+          - name: delivered_at
+            description: Fecha de entrega real.
+          - name: tracking_id
+            description: Código de seguimiento del envío.
+          - name: shipping_service
+            description: Empresa de transporte.
+          - name: shipping_cost
+            description: Coste del envío.
+          - name: order_cost
+            description: Coste de los productos del pedido.
+          - name: order_total
+            description: Importe total del pedido.
+          - name: status
+            description: Estado del pedido (preparing, shipped o delivered).
+          - name: _fivetran_deleted
+            description: TRUE si la fila se borró en el sistema origen.
+          - name: _fivetran_synced
+            description: Fecha en que la fila cambió en el sistema origen.
+          - name: _loaded_at
+            description: Momento en que la fila llegó a Bronze.
+
+      - name: order_items
+        description: Líneas de pedido, una por producto dentro de cada pedido.
+        columns:
+          - name: order_id
+            description: UUID del pedido.
+          - name: product_id
+            description: UUID del producto.
+          - name: quantity
+            description: Unidades del producto en el pedido.
+          - name: _fivetran_deleted
+            description: TRUE si la fila se borró en el sistema origen.
+          - name: _fivetran_synced
+            description: Fecha en que la fila cambió en el sistema origen.
+          - name: _loaded_at
+            description: Momento en que la fila llegó a Bronze.
+
+      - name: events
+        description: Eventos de navegación de los usuarios en la web.
+        columns:
+          - name: event_id
+            description: UUID del evento.
+          - name: session_id
+            description: UUID de la sesión de navegación.
+          - name: user_id
+            description: UUID del usuario.
+          - name: page_url
+            description: URL de la página visitada.
+          - name: created_at
+            description: Fecha y hora del evento.
+          - name: event_type
+            description: Tipo de evento (page_view, add_to_cart, checkout o package_shipped).
+          - name: order_id
+            description: UUID del pedido asociado, si lo hay.
+          - name: product_id
+            description: UUID del producto asociado, si lo hay.
+          - name: _fivetran_deleted
+            description: TRUE si la fila se borró en el sistema origen.
+          - name: _fivetran_synced
+            description: Fecha en que la fila cambió en el sistema origen.
+          - name: _loaded_at
+            description: Momento en que la fila llegó a Bronze.
