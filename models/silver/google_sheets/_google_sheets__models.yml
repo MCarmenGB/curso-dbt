@@ -1,0 +1,29 @@
+models:
+  - name: slv_google_sheets__budget
+    description: Presupuesto mensual por producto, deduplicado por fila de la hoja.
+    columns:
+      - name: budget_id
+        description: Identificador de fila de la hoja (_row en origen).
+        data_tests:
+          - unique
+          - not_null
+      - name: product_id
+        description: Producto presupuestado.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('slv_sql_server_dbo__products')
+                field: product_id
+      - name: quantity_budgeted
+        description: Unidades presupuestadas. Siempre mayor que 0.
+        data_tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                inclusive: false
+      - name: budget_month
+        description: Mes del presupuesto.
+        data_tests:
+          - not_null

@@ -1,0 +1,5 @@
+user_id,is_valid_email_address
+u1,true
+u2,false
+u3,false
+u4,true

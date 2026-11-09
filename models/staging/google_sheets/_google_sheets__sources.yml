@@ -15,8 +15,16 @@ sources:
         columns:
           - name: _row
             description: Número de fila en la hoja de cálculo. Identifica cada registro.
+            data_tests:
+              - unique
+              - not_null
           - name: product_id
             description: UUID del producto presupuestado.
+            data_tests:
+              - relationships:
+                  arguments:
+                    to: source('sql_server_dbo', 'products')
+                    field: product_id
           - name: quantity
             description: Unidades presupuestadas para ese producto en ese mes.
           - name: month
