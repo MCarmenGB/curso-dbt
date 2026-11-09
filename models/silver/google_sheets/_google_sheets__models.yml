@@ -23,6 +23,7 @@ models:
               arguments:
                 min_value: 0
                 inclusive: false
+          - positive_values
       - name: budget_month
         description: Mes del presupuesto.
         data_tests:
