@@ -35,6 +35,9 @@ clean-targets: ["target", "dbt_packages"]
 # (DBT_SILVER_DB, DBT_GOLD_DB): el mismo código sirve en desarrollo, DEV, PRE
 # y PRO. Bronze no aparece aquí: dbt solo la lee con source().
 # =============================================================================
+on-run-end:
+  - "{{ log_run_summary(results) }}"
+  
 models:
   curso_data_engineering:
     # Las tablas transient de Snowflake no tienen Fail-safe y su Time Travel es
