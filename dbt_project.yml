@@ -35,6 +35,9 @@ clean-targets: ["target", "dbt_packages"]
 # (DBT_SILVER_DB, DBT_GOLD_DB): el mismo código sirve en desarrollo, DEV, PRE
 # y PRO. Bronze no aparece aquí: dbt solo la lee con source().
 # =============================================================================
+on-run-end:
+  - "{{ log_run_summary(results) }}"
+  
 models:
   curso_data_engineering:
     # Las tablas transient de Snowflake no tienen Fail-safe y su Time Travel es
@@ -44,6 +47,7 @@ models:
     # --- Staging: casting y renaming, 1:1 con Bronze. Vistas: no ocupan
     #     almacenamiento y siempre reflejan Bronze.
     staging:
+      +tags: [staging]
       +materialized: view
       +database: "{{ env_var('DBT_SILVER_DB') }}"
       sql_server_dbo:
@@ -54,6 +58,7 @@ models:
     # --- Silver: limpieza y deduplicación. Tablas: la deduplicación es cara y
     #     no queremos repetirla en cada consulta.
     silver:
+      +tags: [silver]
       +materialized: table
       +database: "{{ env_var('DBT_SILVER_DB') }}"
       sql_server_dbo:
@@ -64,20 +69,24 @@ models:
     # --- Gold: consumo. La capa la marca la database; el tipo de tabla, el
     #     prefijo del modelo (dim_, fct_, agg_, int_).
     gold:
+      +tags: [gold]
       +materialized: table
       +database: "{{ env_var('DBT_GOLD_DB') }}"
       intermediate:
         +materialized: view
         +schema: intermediate
       core:
+        +tags: [core]
         +schema: core
         +meta:
           owner: equipo-datos-core
       marketing:
+        +tags: [marketing]
         +schema: marketing
         +meta:
           owner: equipo-marketing-analytics
       product:
+        +tags: [product]
         +schema: product
         +meta:
           owner: equipo-producto
@@ -107,3 +116,7 @@ snapshots:
     +database: "{{ env_var('DBT_SILVER_DB') }}"
     +schema: snapshots
     +transient: false
+
+vars:
+  low_stock_threshold: 10
+  budget_start_date: '2024-01-01'
