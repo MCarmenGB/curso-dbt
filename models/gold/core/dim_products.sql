@@ -16,9 +16,9 @@ final as (
         , inventory_units
         , case
             when inventory_units = 0 then 'out_of_stock'
-            when inventory_units < 10 then 'low_stock'
+            when inventory_units < {{ var('low_stock_threshold') }} then 'low_stock'
             else 'in_stock'
-          end                                       as stock_status
+        end                                       as stock_status
         , date_load
     from products
 )
