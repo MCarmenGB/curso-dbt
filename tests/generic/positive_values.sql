@@ -1,8 +1,10 @@
 {# =============================================================================
-   Test genérico: positive_values
+   Test genérico: positive_values  ·  día 4
    =============================================================================
-   Falla si la columna tiene algún valor menor o igual que 0.
-   Devuelve las filas que incumplen la regla: cero filas = PASS.
+   Falla con las filas en las que la columna es <= 0. Se usa en YAML igual
+   que los tests de dbt:
+     data_tests:
+       - positive_values
    ============================================================================= #}
 {% test positive_values(model, column_name) %}
 
