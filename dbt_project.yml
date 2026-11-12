@@ -1,17 +1,5 @@
-# =============================================================================
-# dbt_project.yml · Curso de Data Engineering (dbt + Snowflake) · Cívica
-# =============================================================================
-# Configuración central del proyecto: nombre, rutas y configuración por
-# defecto de cada tipo de recurso. Las configs se heredan por carpeta y un
-# modelo puede sobrescribirlas con {{ config(...) }}.
-# El prefijo + indica que la clave es una config y no una subcarpeta.
-# =============================================================================
-
-name: curso_data_engineering
+name: 'curso_data_engineering'
 version: '1.0.0'
-
-# Solo se usa al ejecutar dbt en local con profiles.yml. En dbt Platform la
-# conexión se define en el proyecto y en las credenciales de cada entorno.
 profile: default
 
 model-paths: ["models"]
@@ -20,52 +8,21 @@ test-paths: ["tests"]
 seed-paths: ["seeds"]
 macro-paths: ["macros"]
 snapshot-paths: ["snapshots"]
-
-# Los bloques {% docs %} solo se buscan en esta carpeta. Un .md con docs
-# blocks guardado en otro sitio (junto a un modelo, por ejemplo) no se
-# encuentra y doc() falla con "doc not found".
 docs-paths: ["docs"]
 
 clean-targets: ["target", "dbt_packages"]
 
-# =============================================================================
-# Variables de proyecto (día 6)
-# =============================================================================
-# Se leen con {{ var('nombre') }} y se pueden sobrescribir en cada ejecución:
-#   dbt build --vars '{budget_start_date: 2025-01-01, low_stock_threshold: 20}'
 vars:
-  # Presupuesto anterior a esta fecha se descarta en slv_google_sheets__budget
   budget_start_date: '2020-01-01'
-  # Por debajo de este número de unidades, dim_products marca 'low_stock'
   low_stock_threshold: 10
 
-# =============================================================================
-# Hooks de ejecución (día 6)
-# =============================================================================
-# on-run-end se ejecuta una vez al terminar cada dbt run/build/test/seed/snapshot
-# y recibe `results` con el resultado de cada nodo.
 on-run-end:
   - "{{ log_run_summary(results) }}"
 
-# =============================================================================
-# Modelos · arquitectura Medallion Cívica
-# =============================================================================
-# Cada capa escribe en su database, que llega por variable de entorno
-# (DBT_SILVER_DB, DBT_GOLD_DB): el mismo código sirve en desarrollo, DEV, PRE
-# y PRO. Bronze no aparece aquí: dbt solo la lee con source().
-# Cada capa lleva un tag con su nombre (día 6) para poder seleccionarla:
-#   dbt build --select tag:silver      (o el selector capa_silver)
-# Día 8: cada carpeta de Gold pertenece a un group (models/_groups.yml) y
-# declara su access.
-# =============================================================================
 models:
   curso_data_engineering:
-    # Las tablas transient de Snowflake no tienen Fail-safe y su Time Travel es
-    # de 1 día como máximo. Para tablas de consumo preferimos tablas normales.
     +transient: false
 
-    # --- Staging: casting y renaming, 1:1 con Bronze. Vistas: no ocupan
-    #     almacenamiento y siempre reflejan Bronze.
     staging:
       +materialized: view
       +database: "{{ env_var('DBT_SILVER_DB') }}"
@@ -75,8 +32,6 @@ models:
       google_sheets:
         +schema: google_sheets
 
-    # --- Silver: limpieza y deduplicación. Tablas: la deduplicación es cara y
-    #     no queremos repetirla en cada consulta.
     silver:
       +materialized: table
       +database: "{{ env_var('DBT_SILVER_DB') }}"
@@ -86,8 +41,6 @@ models:
       google_sheets:
         +schema: google_sheets
 
-    # --- Gold: consumo. La capa la marca la database; el tipo de tabla, el
-    #     prefijo del modelo (dim_, fct_, agg_, int_).
     gold:
       +materialized: table
       +database: "{{ env_var('DBT_GOLD_DB') }}"
@@ -95,53 +48,45 @@ models:
       intermediate:
         +materialized: view
         +schema: intermediate
-        # Lógica de apoyo: solo la pueden usar los modelos de su group
-        +group: core
         +access: private
+        int_orders__enriched:
+          +group: core
+        int_order_items__priced:
+          +group: core
+        int_events__pivoted_by_session:
+          +group: product
       core:
         +schema: core
-        +meta:
-          owner: equipo-datos-core
-        # Dimensiones y hechos compartidos: cualquiera puede usarlos
+        +tags: ['core']
         +group: core
         +access: public
+        +meta:
+          owner: equipo-datos-core
       marketing:
         +schema: marketing
+        +tags: ['marketing']
+        +group: marketing
+        +access: public
         +meta:
           owner: equipo-marketing-analytics
-        +group: marketing
       product:
         +schema: product
+        +tags: ['product']
+        +group: product
+        +access: public
         +meta:
           owner: equipo-producto
-        +group: product
 
-      # Día 8 · grants declarativos (alternativa a la macro grant_select_on_gold).
-      # dbt aplica el grant cada vez que construye el modelo. Descomenta y pon un
-      # rol que exista en tu cuenta de Snowflake, o el build fallará:
-      # +grants:
-      #   select: ['REPORTING_ROLE']
-
-# =============================================================================
-# Seeds
-# =============================================================================
-# Van a Silver y no a Bronze: Bronze solo la escribe la herramienta de ingesta.
 seeds:
   curso_data_engineering:
     +database: "{{ env_var('DBT_SILVER_DB') }}"
     +schema: seeds
     country_codes:
-      # Tipos explícitos para que dbt no los infiera del CSV
       +column_types:
         country_code: varchar(2)
         country_name: varchar(100)
         continent: varchar(50)
 
-# =============================================================================
-# Snapshots (día 5)
-# =============================================================================
-# Historial SCD2 en Silver. Nunca transient: un snapshot es la única copia de
-# la historia y no se puede reconstruir desde Bronze.
 snapshots:
   curso_data_engineering:
     +database: "{{ env_var('DBT_SILVER_DB') }}"
