@@ -28,10 +28,3 @@ selectors:
         - exclude:
             - method: resource_type
               value: snapshot
-
-  - name: selector_prueba
-     description: selector creado en clase de prueba
-      definition:
-        method: tag
-        value: silver
-       
